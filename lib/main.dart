@@ -1,5 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:flag/flag.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+
+class Country {
+  final String countryName;
+  final String isoCode;
+
+  Country({required this.countryName, required this.isoCode});
+}
+
+List<Country> countries = [
+  Country(countryName: 'Afghanistan', isoCode: 'AF'),
+  Country(countryName: 'Albania', isoCode: 'AL'),
+  Country(countryName: 'Algeria', isoCode: 'DZ'),
+  Country(countryName: 'Andorra', isoCode: 'AD'),
+  Country(countryName: 'Angola', isoCode: 'AO'),
+  Country(countryName: 'Antigua and Barbuda', isoCode: 'AG'),
+  Country(countryName: 'Argentina', isoCode: 'AR'),
+  Country(countryName: 'Armenia', isoCode: 'AM'),
+  Country(countryName: 'Australia', isoCode: 'AU'),
+  Country(countryName: 'Austria', isoCode: 'AT'),
+  Country(countryName: 'Azerbaijan', isoCode: 'AZ'),
+  Country(countryName: 'Bahamas', isoCode: 'BS'),
+  Country(countryName: 'Bahrain', isoCode: 'BH'),
+  Country(countryName: 'Bangladesh', isoCode: 'BD'),
+  Country(countryName: 'Barbados', isoCode: 'BB'),
+  Country(countryName: 'Belarus', isoCode: 'BY'),
+  Country(countryName: 'Belgium', isoCode: 'BE'),
+  Country(countryName: 'Belize', isoCode: 'BZ'),
+  Country(countryName: 'Benin', isoCode: 'BJ'),
+  Country(countryName: 'Bhutan', isoCode: 'BT'),
+  Country(countryName: 'Bolivia', isoCode: 'BO'),
+  Country(countryName: 'Bosnia and Herzegovina', isoCode: 'BA'),
+  Country(countryName: 'Botswana', isoCode: 'BW'),
+  Country(countryName: 'Brazil', isoCode: 'BR'),
+  Country(countryName: 'Brunei', isoCode: 'BN'),
+  Country(countryName: 'Bulgaria', isoCode: 'BG'),
+  Country(countryName: 'Burkina Faso', isoCode: 'BF'),
+  Country(countryName: 'Burundi', isoCode: 'BI'),
+  // Add more countries...
+];
+
+Country? selectedCountry;
+
+class CountrySelectionWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return TypeAheadFormField<Country>(
+      textFieldConfiguration: TextFieldConfiguration(
+        decoration: InputDecoration(labelText: 'Select a country'),
+      ),
+      suggestionsCallback: (pattern) => _getCountries(pattern),
+      itemBuilder: (context, Country suggestion) {
+        return ListTile(
+          title: Text(suggestion.countryName),
+        );
+      },
+      onSuggestionSelected: (Country? suggestion) {
+        if (suggestion != null) {
+          selectedCountry = suggestion;
+        }
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select a country';
+        }
+        return null;
+      },
+    );
+  }
+
+  // Method to filter the countries based on the search pattern
+  List<Country> _getCountries(String query) {
+    var lowercaseQuery = query.toLowerCase();
+
+    return countries.where((country) {
+      return country.countryName.toLowerCase().contains(lowercaseQuery);
+    }).toList();
+  }
+}
 
 void main() {
   runApp(MyApp());
@@ -9,106 +87,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flag Picker',
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('Flag Picker'),
-        ),
-        body: FlagPicker(),
-      ),
-    );
-  }
-}
-
-class FlagPicker extends StatefulWidget {
-  const FlagPicker({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _FlagPickerState createState() => _FlagPickerState();
-}
-
-class _FlagPickerState extends State<FlagPicker> {
-  // A model class for the country data
-
-  // A list of country objects with sample data
-  List<Country> countries = [
-    Country('Kenya', 'KE', 'KE'),
-    Country('India', 'IN', 'IN'),
-    Country('Australia', 'AU', 'AU'),
-    Country('France', 'FR', 'FR'),
-    Country('Japan', 'JP', 'JP'),
-    // Add more countries as you wish
-  ];
-
-  // A variable to store the user input
-  String query = '';
-
-  Widget countryItem(Country country) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          country.flag,
-          style: TextStyle(
-            fontSize: 20,
-          ),
-        ),
-      ),
-      title: Text(
-        country.name,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      subtitle: Text(
-        country.code,
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.grey,
+        appBar: AppBar(title: Text('Country Selection')),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CountrySelectionWidget(),
         ),
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // A text field to take the user input
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Enter country name or code',
-          ),
-          onChanged: (value) {
-            setState(() {
-              query = value;
-            });
-          },
-        ),
-        // A list view to display the filtered list of countries
-        Expanded(
-          child: ListView(
-            children: countries
-                // Filter the countries by name or code containing the query
-                .where((country) =>
-                    country.name.toLowerCase().contains(query.toLowerCase()) ||
-                    country.code.toLowerCase().contains(query.toLowerCase()))
-                // Map each country to a custom list tile widget
-                .map((country) => countryItem(country))
-                .toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class Country {
-  final String name;
-  final String code;
-  final String flag;
-
-  Country(this.name, this.code, this.flag);
 }
